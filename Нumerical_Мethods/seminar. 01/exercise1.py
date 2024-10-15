@@ -20,4 +20,4 @@ def func(x, x_values, y_values):
 
 x = math.pi / 5
 result = func(x, x_values, y_values)
-print(x)
+print(result)
