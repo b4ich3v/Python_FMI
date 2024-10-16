@@ -1,7 +1,7 @@
 def function_that_says_ni(*args, **kwargs):
     total_cost = 0.0
-    unique_letters  = set()
-    variable_type =  (int, float)
+    unique_letters = set()
+    variable_type = (int, float)
     types_of_shrubs = {"храст", "shrub", "bush"}
 
     for arg in args:
