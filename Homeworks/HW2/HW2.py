@@ -4,36 +4,37 @@ def function_that_says_ni(*args, **kwargs):
     variable_type = (int, float)
     types_of_shrubs = {"храст", "shrub", "bush"}
 
+    def check_item(element):
+        if "name" not in element or type(element["name"]) is not str:
+            return False
+        name_value = element["name"].lower()
+        if name_value not in types_of_shrubs:
+            return False
+        if "cost" in element:
+            cost = element["cost"]
+            if type(cost) not in variable_type or cost < 0:
+                return False
+        return True
+
+    def add_cost(element):
+        if "cost" in element:
+            return round(element["cost"], 2)
+        return 0.0
+
     for arg in args:
-        if type(arg) is dict and "name" in arg:
-            name_value = arg["name"].lower()
-            if name_value not in types_of_shrubs:
-                return "Ni!"
-            if "cost" in arg:
-                cost = arg["cost"]
-                if type(cost) in variable_type and cost >= 0:
-                    total_cost += round(cost, 2)
-                else:
-                    return "Ni!"
-            else:
-                continue
+        if type(arg) is dict and check_item(arg):
+            total_cost += add_cost(arg)
+        else:
+            return "Ni!"
 
     for key, value in kwargs.items():
-        if type(value) is dict and "name" in value:
-            name_value = value["name"].lower()
-            if name_value in types_of_shrubs:
-                for letter in key:
-                    unique_letters.add(letter)
-            else:
-                return "Ni!"
-            if "cost" in value:
-                cost = value["cost"]
-                if type(cost) in variable_type and cost >= 0:
-                    total_cost += round(cost, 2)
-                else:
-                    return "Ni!"
-            else:
-                continue
+        if type(key) is not str:
+            return "Ni!"
+        if type(value) is dict and check_item(value):
+            unique_letters.update(letter for letter in key if letter.islower() or letter == '_')
+            total_cost += add_cost(value)
+        else:
+            return "Ni!"
 
     if total_cost > 42.00:
         return "Ni!"
