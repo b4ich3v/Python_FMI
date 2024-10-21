@@ -1,5 +1,5 @@
 def moneyForLili(n, x, p):
-    startingMoney = 10.00
+    starting_money = 10.00
     total = 0.00
     toys_received = 0
 
@@ -7,10 +7,10 @@ def moneyForLili(n, x, p):
         if i % 2 == 1:
             toys_received += 1
         else:
-            money_received = startingMoney
+            money_received = starting_money
             total += money_received
             total -= 1.00
-            startingMoney += 10.00
+            starting_money += 10.00
 
     total += toys_received * p
 
