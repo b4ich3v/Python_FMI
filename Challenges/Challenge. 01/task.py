@@ -1,7 +1,11 @@
 def type_check(type):
+
     def type_decorator(*expected_types):
+
         def type_wrapper(function):
-            def type_validater(*args, **kwargs):
+
+            def type_validator(*args, **kwargs):
+
                 def print_error(message_type):
                     expected_types_str = ''
                     for i in range(len(expected_types)):
@@ -22,7 +26,7 @@ def type_check(type):
 
                 return result
 
-            return type_validater
+            return type_validator
 
         return type_wrapper
 
