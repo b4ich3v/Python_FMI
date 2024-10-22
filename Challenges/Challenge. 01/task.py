@@ -1,4 +1,4 @@
-def type_check(type):
+def type_check(arg_type):
 
     def type_decorator(*expected_types):
 
@@ -14,14 +14,14 @@ def type_check(type):
                             expected_types_str += ', '
                     print(f"Invalid {message_type} arguments, expected {expected_types_str}!")
 
-                if type == "in":
-                    invalid_args = [current_arg for current_arg in args if current_arg not in expected_types]
+                if arg_type == "in":  
+                    invalid_args = [current_arg for current_arg in args if type(current_arg) not in expected_types]
                     if len(invalid_args) > 0:
                         print_error("in")
 
                 result = function(*args, **kwargs)
 
-                if type == "out" and result not in expected_types:
+                if arg_type == "out" and type(result) not in expected_types:
                     print_error("out")
 
                 return result
@@ -31,3 +31,4 @@ def type_check(type):
         return type_wrapper
 
     return type_decorator
+
