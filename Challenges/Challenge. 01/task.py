@@ -1,4 +1,10 @@
+def identity_function(function):
+    return function
+
 def type_check(arg_type):
+    if type(arg_type) is not str or (arg_type != "in" and arg_type != "out"):
+        print("Error!!!")
+        return identity_function
 
     def type_decorator(*expected_types):
 
@@ -14,8 +20,14 @@ def type_check(arg_type):
                         print(f"Invalid output value, expected {expected_types_str}!")
 
                 if arg_type == "in":
-                    invalid_args = [current_arg for current_arg in args if type(current_arg) not in expected_types]
-                    invalid_kwargs = [current_value for current_value in kwargs.values() if type(current_value) not in expected_types]
+                    invalid_args = [
+                        current_arg for current_arg in args
+                        if type(current_arg) not in expected_types
+                    ]
+                    invalid_kwargs = [
+                        current_value for current_value in kwargs.values()
+                        if type(current_value) not in expected_types
+                    ]
                     if invalid_args or invalid_kwargs:
                         print_error()
 
@@ -31,4 +43,3 @@ def type_check(arg_type):
         return type_wrapper
 
     return type_decorator
-
