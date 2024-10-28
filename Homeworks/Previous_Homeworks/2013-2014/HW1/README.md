@@ -4,7 +4,7 @@
 
   Пример:
 
-* >>> wow_such_much(1, 16)
+* wow_such_much(1, 16)
   ['1', '2', 'such', '4', 'much', 'such', '7', '8', 'such', 'much', '11', 'such', '13', '14', 'suchmuch']
   doge words
   Функцията count_doge_words трябва да намери всички "паразитни" в стила на doge думи в едно изречение и връща техния брой. Паразитни думи са:
@@ -17,6 +17,6 @@
   very
   Пример:
 
-* >>> count_doge_words("wow much hard such difficult")
+* count_doge_words("wow much hard such difficult")
   3
   Забележка: В подаваните изречения не очаквайте да има каквито и да е препинателни знаци.
