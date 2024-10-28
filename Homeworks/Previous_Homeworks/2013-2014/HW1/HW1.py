@@ -19,8 +19,9 @@ def count_doge_words(sentence):
         print("Tup")
     else:
         counter = 0
+        target_words = ["wow", "lol", "so", "such", "much", "very"]
         str_sentence = sentence.split()
         for current_word in str_sentence:
-            if current_word == "wow" or current_word == "lol" or current_word == "so" or current_word == "such" or current_word == "much" or current_word == "very":
+            if current_word in target_words:
                 counter += 1
         return counter
