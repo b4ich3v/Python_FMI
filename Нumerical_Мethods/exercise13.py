@@ -28,12 +28,14 @@ n = 10
 nodes = chebyshev_nodes(n)
 values = [runge(current) for current in nodes]
 
-res_pol = newton_poly(values, values)
-res_pol.simplify()
+res_pol = newton_poly(nodes, values)  
+res_pol_simplified = res_pol.simplify()  
 
 nodes_real = np.linspace(-1, 1, 100)
 values_real = [runge(current) for current in nodes_real]
-values_appr = [res_pol.subs("x", current) for current in nodes_real]
+values_appr = [res_pol_simplified.subs("x", current) for current in nodes_real]
+
 error = np.abs(np.array(values_real) - np.array(values_appr))
+
 plt.plot(nodes_real, error)
 plt.show()
