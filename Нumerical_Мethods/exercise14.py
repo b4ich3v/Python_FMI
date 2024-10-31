@@ -1,7 +1,6 @@
 import numpy as np
 import sympy as sp
 
-
 def divided_difference(nodes, values):
     n = len(nodes)
     coeffs = np.zeros((n, n))
