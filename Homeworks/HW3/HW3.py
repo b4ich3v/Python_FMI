@@ -9,7 +9,7 @@ class Tone:
     def __str__(self):
         return self.name_of_tone
 
-    def __hash__(self): #this time i didn't use it
+    def __hash__(self):  # this time i didn't use it
         return hash(self.name_of_tone)
 
     def __eq__(self, other):
@@ -17,22 +17,22 @@ class Tone:
 
     def __add__(self, other):
         if isinstance(other, Tone):
-            return self.calculate_tone(other, "+")
+            return self._calculate_tone(other, "+")
         elif isinstance(other, Interval):
-            return self.calculate_interval(other, "+")
+            return self._calculate_interval(other, "+")
         raise TypeError("Invalid operation")
 
     def __sub__(self, other):
         if isinstance(other, Tone):
-            return self.calculate_tone(other, "-")
+            return self._calculate_tone(other, "-")
         elif isinstance(other, Interval):
-            return self.calculate_interval(other, "-")
+            return self._calculate_interval(other, "-")
         raise TypeError("Invalid operation")
 
     def get_index(self):
         return Tone.TONES.index(self.name_of_tone)
 
-    def calculate_tone(self, other, symbol):
+    def _calculate_tone(self, other, symbol):
         if symbol == "+":
             return Chord(self, other)
         elif symbol == "-":
@@ -42,7 +42,7 @@ class Tone:
         else:
             raise ValueError("Invalid symbol")
 
-    def calculate_interval(self, other, symbol):
+    def _calculate_interval(self, other, symbol):
         if symbol == "+":
             index = (self.TONES.index(self.name_of_tone) + other.semitones) % 12
             return Tone(self.TONES[index])
@@ -109,14 +109,14 @@ class Chord:
 
     def __add__(self, other):
         if isinstance(other, Tone):
-            return self.add_tone(other)
+            return self._add_tone(other)
         elif isinstance(other, Chord):
-            return self.add_chord(other)
+            return self._add_chord(other)
         raise TypeError("Invalid operation")
 
     def __sub__(self, other):
         if isinstance(other, Tone):
-            if other not in self.tones: #using __eq__
+            if other not in self.tones:  # using __eq__
                 raise TypeError(f"Cannot remove tone {other} from chord {self}")
             new_tones = [tone for tone in self.tones if tone != other]
             if len(set(new_tones)) < 2:
@@ -124,7 +124,7 @@ class Chord:
             return Chord(*new_tones)
         raise TypeError("Invalid operation")
 
-    def validate_distance_to_root(self, target):
+    def _validate_distance_to_root(self, target):
         root_index = self.root.get_index()
         for tone in self.tones:
             distance = (tone.get_index() - root_index) % 12
@@ -133,26 +133,26 @@ class Chord:
         return False
 
     def is_minor(self):
-        return self.validate_distance_to_root(3)
+        return self._validate_distance_to_root(3)
 
     def is_major(self):
-        return self.validate_distance_to_root(4)
+        return self._validate_distance_to_root(4)
 
     def is_power_chord(self):
         return not self.is_minor() and not self.is_major()
 
-    def add_tone(self, other):
-        if other not in self.tones: #using __eq__
+    def _add_tone(self, other):
+        if other not in self.tones:  # using __eq__
             new_tones = list(self.tones)
             new_tones.append(other)
             return Chord(*new_tones)
         else:
             return self
 
-    def add_chord(self, other):
+    def _add_chord(self, other):
         new_tones = list(self.tones)
         for tone in other.tones:
-            if tone not in self.tones: #using __eq__
+            if tone not in self.tones:  # using __eq__
                 new_tones.append(tone)
         return Chord(*new_tones)
 
