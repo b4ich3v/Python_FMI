@@ -1,5 +1,4 @@
 import numpy as np
-import sympy
 import sympy as sp
 
 def diff(nodes, values):
