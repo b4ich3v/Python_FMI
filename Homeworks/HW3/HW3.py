@@ -100,9 +100,11 @@ class Chord:
         self.tones = unique_tones
 
     def __str__(self):
+        root_index = Tone.TONES.index(self.root.name_of_tone)
         other_tones = [tone for tone in self.tones if tone != self.root]
         sorted_tones = sorted(
-            other_tones, key=lambda tone: Tone.TONES.index(tone.name_of_tone)
+            other_tones,
+            key=lambda tone: (Tone.TONES.index(tone.name_of_tone) - root_index) % 12
         )
         sorted_tones.insert(0, self.root)
         return "-".join(str(tone) for tone in sorted_tones)
