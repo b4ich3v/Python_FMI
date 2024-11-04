@@ -55,7 +55,7 @@ class Tone:
 
 class Interval:
     INTERVAL_NAMES = [
-        "octave", "minor 2nd", "major 2nd", "minor 3rd",
+        "unison", "minor 2nd", "major 2nd", "minor 3rd",
         "major 3rd", "perfect 4th", "diminished 5th",
         "perfect 5th", "minor 6th", "major 6th",
         "minor 7th", "major 7th"
