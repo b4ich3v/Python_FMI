@@ -127,7 +127,7 @@ class Chord:
         raise TypeError("Invalid operation")
 
     def _validate_distance_to_root(self, target):
-        root_index = self.root.get_index()
+        root_index = Tone.TONES.index(self.root.name_of_tone)
         for tone in self.tones:
             distance = (tone.get_index() - root_index) % 12
             if distance == target:
