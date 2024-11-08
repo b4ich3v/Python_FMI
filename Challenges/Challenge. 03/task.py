@@ -1,18 +1,18 @@
 class ExceptionStore:
     def __init__(self):
-        self.all_exceptions = []
+        self.unhandled_exceptions = []
         self.exception = None
 
     def log_exception(self, exc_value, exc_type):
-        self.all_exceptions.append((exc_value, exc_type))
+        self.unhandled_exceptions.append((exc_value, exc_type))
         self.exception = exc_value
 
 
 class ProtectedSection(ExceptionStore):
     def __init__(self, log=(), suppress=()):
-        if not all(isinstance(exc, type) and issubclass(exc, BaseException) for exc in log):
+        if not all(isinstance(exc, type) and issubclass(exc, Exception) for exc in log):
             raise TypeError("Мust be exception types")
-        if not all(isinstance(exc, type) and issubclass(exc, BaseException) for exc in suppress):
+        if not all(isinstance(exc, type) and issubclass(exc, Exception) for exc in suppress):
             raise TypeError("Мust be exception types")
 
         super().__init__()
