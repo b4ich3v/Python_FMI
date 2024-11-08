@@ -28,7 +28,6 @@ class ProtectedSection(ExceptionStore):
                 self.exception = exc_value
                 return True
             elif any(issubclass(exc_type, suppress_exc) for suppress_exc in self.suppress):
-                self.exception = exc_value
                 return True
             else:
                 self.log_exception(exc_value, exc_type)
