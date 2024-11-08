@@ -10,10 +10,10 @@ class ExceptionStore:
 
 class ProtectedSection(ExceptionStore):
     def __init__(self, log=(), suppress=()):
-        if not all(isinstance(exc, type) and issubclass(exc, Exception) for exc in log):
-            raise TypeError("Мust be exception types")
-        if not all(isinstance(exc, type) and issubclass(exc, Exception) for exc in suppress):
-            raise TypeError("Мust be exception types")
+        if not all(issubclass(exc, Exception) for exc in log):
+            raise TypeError("Must be exception types")
+        if not all(issubclass(exc, Exception) for exc in suppress):
+            raise TypeError("Must be exception types")
 
         super().__init__()
         self.log = log
@@ -24,10 +24,10 @@ class ProtectedSection(ExceptionStore):
 
     def __exit__(self, exc_type, exc_value, traceback):
         if exc_type:
-            if any(issubclass(exc_type, log_exc) for log_exc in self.log):
+            if exc_type in self.log:
                 self.exception = exc_value
                 return True
-            elif any(issubclass(exc_type, suppress_exc) for suppress_exc in self.suppress):
+            elif exc_type in self.suppress:
                 return True
             else:
                 self.log_exception(exc_value, exc_type)
