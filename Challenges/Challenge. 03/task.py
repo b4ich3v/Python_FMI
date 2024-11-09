@@ -43,6 +43,7 @@ class ProtectedSection:
         return exc_type in self.suppress_exceptions
 
     def __enter__(self):
+        self._current_exception = None 
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
