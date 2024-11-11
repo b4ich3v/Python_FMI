@@ -1,41 +1,64 @@
-class Matrix:
-    def __init__(self, rows, cols):
-        if rows < 0 or cols < 0:
+class NDimMatrix:
+    def __init__(self, dimensions):
+        if any(dim < 0 for dim in dimensions):
             raise ValueError("Error: Negative dimensions are not allowed.")
         
-        self.matrix = []  
+        self.dimensions = dimensions
+        self.matrix = self._initialize_matrix(dimensions)
 
-        for i in range(rows):
-            current = []
-            for j in range(cols):
-                current.append(0)
-            self.matrix.append(current)
+    def _initialize_matrix(self, dimensions):
+        if len(dimensions) == 1:
+            return [0] * dimensions[0]
+        
+        matrix = []
+        for _ in range(dimensions[0]):
+            matrix.append(self._initialize_matrix(dimensions[1:]))
+        return matrix
 
     def __getitem__(self, index):
         if isinstance(index, tuple):
-            row, col = index
-            return self.matrix[row][col]
+            return self._get_recursive(self.matrix, index)
         else:
-            return self.matrix[index]
+            raise TypeError("Index must be a tuple.")
 
+    def _get_recursive(self, matrix, index):
+        if len(index) == 1:
+            return matrix[index[0]]
+        else:
+            return self._get_recursive(matrix[index[0]], index[1:])
+    
     def __setitem__(self, index, value):
         if isinstance(index, tuple):
-            row, col = index
-            self.matrix[row][col] = value
+            self._set_recursive(self.matrix, index, value)
         else:
-            self.matrix[index] = value
+            raise TypeError("Index must be a tuple.")
+
+    def _set_recursive(self, matrix, index, value):
+        if len(index) == 1:
+            matrix[index[0]] = value
+        else:
+            self._set_recursive(matrix[index[0]], index[1:], value)
 
     def __repr__(self):
-        return '\n'.join([' '.join(map(str, row)) for row in self.matrix])
+        return self._repr_recursive(self.matrix)
 
+    def _repr_recursive(self, matrix):
+        if isinstance(matrix[0], list):
+            return '[' + ',\n '.join(self._repr_recursive(m) for m in matrix) + ']'
+        else:
+            return ' '.join(map(str, matrix))
+    
     def _slice(self, matrix, start, end):
-        dimensions = len(start)
-
-        if dimensions == 1:
+        if len(start) == 1:
             return matrix[start[0]:end[0]]
-
-        result = []
         
+        result = []
         for i in range(start[0], end[0]):
             result.append(self._slice(matrix[i], start[1:], end[1:]))
         return result
+
+    def slice(self, start, end):
+        if len(start) != len(end):
+            raise ValueError("Start and end indices must have the same length.")
+        return self._slice(self.matrix, start, end)
+
