@@ -1,4 +1,16 @@
 class LockPicker_OMI0600328:
+    DEFAULT_VALUES = {
+        int: 0,
+        str: "",
+        float: 0.0,
+        bool: False,
+        list: [],
+        dict: {},
+        set: set(),
+        tuple: (),
+        complex: complex(0, 0)
+    }
+
     def __init__(self, lock):
         self.lock = lock
         self.attempted_args = set()
@@ -10,22 +22,11 @@ class LockPicker_OMI0600328:
 
         position = exc.position - 1
         expected_type = exc.expected
-
-        DEFAULT_VALUES = {
-            int: 0,
-            str: "",
-            float: 0.0,
-            bool: False,
-            list: [],
-            dict: {},
-            set: set(),
-            tuple: ()
-        }
         
         if (position, expected_type) in self.attempted_args:
             return args
         
-        args[position] = DEFAULT_VALUES.get(expected_type, None)
+        args[position] = self.DEFAULT_VALUES.get(expected_type, None)
         self.attempted_args.add((position, expected_type))
         return args
 
@@ -47,3 +48,4 @@ class LockPicker_OMI0600328:
                     args = self._handle_type_error(ex, args)
                 elif isinstance(ex, ValueError):
                     args = self._handle_value_error(ex, args)
+
