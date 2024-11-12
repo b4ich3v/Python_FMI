@@ -38,7 +38,7 @@
   position - int, който показва позицията на грешния аргумент, в списъка подадени аргументи, ЗАПОЧВАЩА ОТ 1
   expected - очакваната стойност на тази позиция
   Пример
-  # lock е някаква ключалка, а аргументите, които `pick` очаква за отключване, са (1, 'две')
+  lock е някаква ключалка, а аргументите, които `pick` очаква за отключване, са (1, 'две')
   lock.pick()  # TypeError, в който position=None и expected=2
   lock.pick([], None)  # TypeError, в който position=1 и expected=int
   lock.pick(1, 'two')  # ValueError, в който position=2 и expected='две'
