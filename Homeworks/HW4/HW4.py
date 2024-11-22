@@ -21,15 +21,15 @@ class Material:
             raise ValueError("Mass must be a positive number.")
         self.mass: float = mass
         self.used: bool = False
-        self._volume: float = None # Cached value for the volume
+        self._volume: float = None  # Cached value for the volume
 
     def __hash__(self):
         return id(self)  # Hashing the object by its unique id
 
     @property
-    def volume(self):  # Caching the Volume Calculation
+    def volume(self):
         if self._volume is None:
-            self._volume = self.mass / self.density
+            self._volume = self.mass / self.density  
         return self._volume
 
 
@@ -66,11 +66,11 @@ class Factory:
         'Wood': Wood,
         'Steel': Steel,
     }
-    dynamic_classes = {}
-    all_materials = set()
+    dynamic_classes = {}  # Stores dynamically created composite material classes
+    all_materials = set()  # Set of all material instances created across all factories
 
     def __init__(self):
-        self.materials = set()
+        self.materials = set()  # Set of material instances created by this factory
 
     def __call__(self, *args, **kwargs):
         self._validate_call(args, kwargs)
@@ -135,7 +135,7 @@ class Factory:
         material_bitmask = 0
         total_mass = 0
         for material in materials:
-            material_bitmask |= material.material_bit
+            material_bitmask |= material.material_bit  # Combine material bits using bitwise OR
             total_mass += material.mass
         return material_bitmask, total_mass
 
@@ -159,14 +159,14 @@ class Factory:
         return new_class
 
     def _determine_base_materials(self, material_bitmask):
-        return [name for name, bit in MATERIAL_BITS.items() if material_bitmask & bit]
+        return [name for name, bit in MATERIAL_BITS.items() if material_bitmask & bit]  # Check if material is included using bitwise AND
 
     def _calculate_density(self, base_materials):
         densities = [BASE_MATERIAL_DENSITIES[name] for name in base_materials]
         return sum(densities) / len(densities)
 
     def _generate_class_name(self, base_materials):
-        return '_'.join(sorted(base_materials))
+        return '_'.join(sorted(base_materials))  # Generate class name by sorting material names
 
     def _create_new_material(self, new_class, total_mass):
         new_material = new_class(total_mass)
