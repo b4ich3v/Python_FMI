@@ -29,7 +29,7 @@ class Material:
     @property
     def volume(self):
         if self._volume is None:
-            self._volume = self.mass / self.density 
+            self._volume = self.mass / self.density  # Lazy calculation of volume
         return self._volume
 
 
@@ -76,7 +76,8 @@ class Factory:
     }
 
     def __init__(self):
-        self.materials = set()
+        self.material_bitmask = 0  # Represent current materials as a bitmask
+        self.materials = set()      # Set of Material instances managed by this factory
 
     def __call__(self, *args, **kwargs):
         self._validate_call(args, kwargs)
@@ -97,6 +98,7 @@ class Factory:
             material = self._instantiate_material(material_class, mass)
             self._add_material(material)
             materials_created.append(material)
+            self.material_bitmask |= MATERIAL_BITS[material_name]  # Set the bit for the created material
         return tuple(materials_created)
 
     def _get_material_class(self, material_name):
@@ -109,8 +111,10 @@ class Factory:
         return material_class(mass)
 
     def _add_material(self, material):
-        self.materials.add(material)
-        Factory.all_materials.add(material)
+        self.materials.add(material)  # Add to factory's materials
+        Factory.all_materials.add(material)  # Add to global all_materials
+        # Update the bitmask with the material's bit
+        self.material_bitmask |= material.material_bit  # Already done in _create_materials
 
     def _use_materials(self, materials):
         self._validate_materials(materials)
@@ -120,6 +124,7 @@ class Factory:
         new_class = self._get_or_create_dynamic_class(material_bitmask)
 
         new_material = self._create_new_material(new_class, total_mass)
+        self.material_bitmask |= new_class.material_bit  # Set the bit for the new composite material
         return new_material
 
     def _validate_materials(self, materials):
@@ -134,8 +139,9 @@ class Factory:
     def _mark_materials_as_used(self, materials):
         for material in materials:
             material.used = True
-            self.materials.discard(material)
-            Factory.all_materials.discard(material)
+            self.materials.discard(material)  # Remove from factory's materials
+            self.material_bitmask &= ~material.material_bit  # Clear the bit for the used material
+            Factory.all_materials.discard(material)  # Remove from global all_materials
 
     def _calculate_bitmask_and_mass(self, materials):
         material_bitmask = 0
@@ -178,15 +184,17 @@ class Factory:
 
     def _create_new_material(self, new_class, total_mass):
         new_material = new_class(total_mass)
-        self.materials.add(new_material)
-        Factory.all_materials.add(new_material)
+        self.materials.add(new_material)  # Add to factory's materials
+        Factory.all_materials.add(new_material)  # Add to global all_materials
         return new_material
 
     def can_build(self, volume_needed):
+        # Calculate total volume of current materials in this factory
         total_volume = sum(material.volume for material in self.materials)
         return total_volume >= volume_needed
 
     @classmethod
     def can_build_together(cls, volume_needed):
+        # Calculate total volume of all materials across all factories
         total_volume = sum(material.volume for material in cls.all_materials)
         return total_volume >= volume_needed
