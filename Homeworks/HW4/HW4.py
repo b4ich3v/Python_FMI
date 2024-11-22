@@ -29,7 +29,7 @@ class Material:
     @property
     def volume(self):
         if self._volume is None:
-            self._volume = self.mass / self.density  # Lazy calculation of volume
+            self._volume = self.mass / self.density  
         return self._volume
 
 
