@@ -35,4 +35,4 @@ apr_values2 = [res_pol2.subs("x", current) for current in x_nodes2]
 
 plt.plot(x_nodes1, apr_values1, label='pol1')
 plt.plot(x_nodes2, apr_values2, label='pol2')
-plt.show(
+plt.show()
