@@ -98,11 +98,11 @@ class Factory:
             material = self._instantiate_material(material_class, mass)
             self._add_material(material)
             materials_created.append(material)
-            self.material_bitmask |= MATERIAL_BITS[material_name]  # Set the bit for the created material
+            self.material_bitmask |= material_class.material_bit  # Use material_class.material_bit
         return tuple(materials_created)
 
     def _get_material_class(self, material_name):
-        material_class = self.material_classes.get(material_name) or self.dynamic_classes.get(material_name)
+        material_class = self.material_classes.get(material_name)
         if material_class is None:
             raise ValueError(f"Unknown material: {material_name}")
         return material_class
@@ -114,7 +114,7 @@ class Factory:
         self.materials.add(material)  # Add to factory's materials
         Factory.all_materials.add(material)  # Add to global all_materials
         # Update the bitmask with the material's bit
-        self.material_bitmask |= material.material_bit  # Already done in _create_materials
+        self.material_bitmask |= material.material_bit
 
     def _use_materials(self, materials):
         self._validate_materials(materials)
@@ -152,10 +152,18 @@ class Factory:
         return material_bitmask, total_mass
 
     def _get_or_create_dynamic_class(self, material_bitmask):
-        if material_bitmask in self.dynamic_classes:
-            return self.dynamic_classes[material_bitmask]
-        else:
-            return self._create_dynamic_class(material_bitmask)
+        # Try to find existing class by material_bitmask
+        for cls in self.dynamic_classes.values():
+            if cls.material_bit == material_bitmask:
+                return cls
+        # Generate class name
+        base_materials = self._determine_base_materials(material_bitmask)
+        class_name = self._generate_class_name(base_materials)
+        # Check if class already exists in material_classes
+        if class_name in self.material_classes:
+            return self.material_classes[class_name]
+        # Create new dynamic class
+        return self._create_dynamic_class(material_bitmask)
 
     def _create_dynamic_class(self, material_bitmask):
         base_materials = self._determine_base_materials(material_bitmask)
@@ -167,6 +175,8 @@ class Factory:
             'material_bit': material_bitmask,
         }
         new_class = type(class_name, (Material,), attributes)
+        # Store the new class using the class name as the key
+        self.material_classes[class_name] = new_class
         self.dynamic_classes[material_bitmask] = new_class
         return new_class
 
