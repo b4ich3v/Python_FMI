@@ -2,17 +2,6 @@ import unittest
 from unittest.mock import mock_open, patch
 from secret import validate_recipe, RuinedNikuldenDinnerError
 
-def memoize(func):
-    data = {}
-
-    def wrapper(*args, **kwargs):
-        key = (args, tuple(sorted(kwargs.items())))
-        if key not in data:
-            data[key] = func(*args, **kwargs)
-        return data[key]
-    
-    return wrapper
-
 def generate_all_variations(word):
     size = len(word)
     result = []
@@ -26,7 +15,6 @@ def generate_all_variations(word):
         result.append(''.join(current))
     return result
 
-@memoize
 def generate_all_insertions_for_keyword(word, special_word):
     variations = []
     for i in range(len(word) + 1):
@@ -34,7 +22,6 @@ def generate_all_insertions_for_keyword(word, special_word):
         variations.append(new_word)
     return variations
 
-@memoize
 def generate_all_insertions_for_random(word, special_word):
     variations = []
     for i in range(len(special_word) + 1):
@@ -43,17 +30,19 @@ def generate_all_insertions_for_random(word, special_word):
     return variations
 
 class TestNikuldenValidator(unittest.TestCase):
-    keywords = ["риба", "рибена", "шаран", "сьонга"]
-    valid_keywords = set()
-    invalid_keywords = set()
-    some_edge_cases = ["", "\t", "\n"]
-    special_word = "рок"
 
-    def test_valid_recipe(self):
+    def setUp(self):
+        self.keywords = ["риба", "рибена", "шаран", "сьонга"]
+        self.special_word = "рок"
+        self.valid_keywords = set()
+        self.invalid_keywords = set()
+        self.some_edge_cases = ["", "\t", "\n"]
+
         for current_keyword in self.keywords:
             variations = generate_all_variations(current_keyword)
             self.valid_keywords.update(variations)
 
+    def test_valid_recipe(self):
         valid_contents = []
         for current_keyword in self.valid_keywords:
             valid_contents.extend([
@@ -63,16 +52,16 @@ class TestNikuldenValidator(unittest.TestCase):
                 f"Нямам против да приготвя {current_keyword}, знаейки че иначе ще бъде жена ми ;(.",
                 f"{current_keyword} е доста екзотично и полезно ястие."
             ])
-           
+       
         for content in valid_contents:
             with self.subTest(content=content):
                 m = mock_open(read_data=content)
                 with patch("builtins.open", m):
                     result = validate_recipe("dummy_path.txt")
-                    self.assertTrue(result, "Error")
+                    self.assertTrue(result, f"Expected True for content: {content}")
 
     def test_invalid_recipe(self):
-        for current_keyword in self.keywords:
+        for current_keyword in self.valid_keywords:
             variations_keyword = generate_all_insertions_for_keyword(current_keyword, self.special_word)
             variations_random = generate_all_insertions_for_random(current_keyword, self.special_word)
             self.invalid_keywords.update(variations_keyword)
@@ -94,7 +83,7 @@ class TestNikuldenValidator(unittest.TestCase):
                 m = mock_open(read_data=content)
                 with patch("builtins.open", m):
                     result = validate_recipe("dummy_path.txt")
-                    self.assertFalse(result, "Error")
+                    self.assertFalse(result, f"Expected False for content: {content}")
 
     def test_bad_recipe_file(self):
         error_cases = [OSError, IOError]
