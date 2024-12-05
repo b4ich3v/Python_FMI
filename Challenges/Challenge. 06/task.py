@@ -2,6 +2,19 @@ import unittest
 from unittest.mock import mock_open, patch
 from secret import validate_recipe, RuinedNikuldenDinnerError
 
+def simple_cache(func):
+    data = {}
+
+    def wrapper(*args):
+        if args in data:
+            return data[args]
+        result = func(*args)
+        data[args] = result
+        return result
+
+    return wrapper
+
+@simple_cache
 def generate_all_variations(word):
     size = len(word)
     result = []
@@ -15,19 +28,13 @@ def generate_all_variations(word):
         result.append(''.join(current))
     return result
 
+@simple_cache
 def generate_all_insertions_for_keyword(word, special_word):
-    variations = []
-    for i in range(len(word) + 1):
-        new_word = word[:i] + special_word + word[i:]
-        variations.append(new_word)
-    return variations
+    return [word[:i] + special_word + word[i:] for i in range(len(word) + 1)]
 
+@simple_cache
 def generate_all_insertions_for_random(word, special_word):
-    variations = []
-    for i in range(len(special_word) + 1):
-        new_word = special_word[:i] + word + special_word[i:]
-        variations.append(new_word)
-    return variations
+    return [special_word[:i] + word + special_word[i:] for i in range(len(special_word) + 1)]
 
 class TestNikuldenValidator(unittest.TestCase):
 
@@ -38,21 +45,25 @@ class TestNikuldenValidator(unittest.TestCase):
         self.invalid_keywords = set()
         self.some_edge_cases = ["", "\t", "\n", "123"]
 
+        self.templates = [
+            "Днес ще ям {keyword}, защото е Никулден ;Д.",
+            "Тази рецепта включва {keyword}.",
+            "{keyword} е подходящо ястие за Никулден.",
+            "Нямам против да приготвя {keyword}, знаейки че иначе ще бъде жена ми ;(.",
+            "{keyword} е доста екзотично и полезно ястие."
+        ]
+
         for current_keyword in self.keywords:
             variations = generate_all_variations(current_keyword)
             self.valid_keywords.update(variations)
 
     def test_valid_recipe(self):
-        valid_contents = []
-        for current_keyword in self.valid_keywords:
-            valid_contents.extend([
-                f"Днес ще ям {current_keyword}, защото е Никулден ;Д.",
-                f"Тази рецепта включва {current_keyword}.",
-                f"{current_keyword} е подходящо ястие за Никулден.",
-                f"Нямам против да приготвя {current_keyword}, знаейки че иначе ще бъде жена ми ;(.",
-                f"{current_keyword} е доста екзотично и полезно ястие."
-            ])
-       
+        valid_contents = [
+            template.format(keyword=current_keyword)
+            for current_keyword in self.valid_keywords
+            for template in self.templates
+        ]
+
         for content in valid_contents:
             with self.subTest(content=content):
                 m = mock_open(read_data=content)
@@ -69,14 +80,11 @@ class TestNikuldenValidator(unittest.TestCase):
 
         invalid_contents = self.some_edge_cases.copy()
 
-        for current_keyword in self.invalid_keywords:
-            invalid_contents.extend([
-                f"Днес ще ям {current_keyword}, защото е Никулден ;Д.",
-                f"Тази рецепта включва {current_keyword}.",
-                f"{current_keyword} е подходящо ястие за Никулден.",
-                f"Нямам против да приготвя {current_keyword}, знаейки че иначе ще бъде жена ми ;(.",
-                f"{current_keyword} е доста екзотично и полезно ястие."
-            ])
+        invalid_contents.extend(
+            template.format(keyword=current_keyword)
+            for current_keyword in self.invalid_keywords
+            for template in self.templates
+        )
 
         for content in invalid_contents:
             with self.subTest(content=content):
@@ -93,7 +101,6 @@ class TestNikuldenValidator(unittest.TestCase):
                 with patch("builtins.open", side_effect=error):
                     with self.assertRaises(RuinedNikuldenDinnerError):
                         validate_recipe("missing_file.txt")
-
 
 if __name__ == "__main__":
     unittest.main()
