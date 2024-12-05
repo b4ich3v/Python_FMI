@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import mock_open, patch
 from secret import validate_recipe, RuinedNikuldenDinnerError
 
-def memoization(func):
+def memoization(func): # Decorator to cache results of expensive function calls
     data = {}
 
     def wrapper(*args):
@@ -18,10 +18,10 @@ def memoization(func):
 def generate_all_variations(word):
     size = len(word)
     result = []
-    for i in range(1 << size):  
+    for i in range(1 << size): # Loop through all possible bitmasks for the word  
         current = []
-        for j in range(size):
-            if i & (1 << j):  
+        for j in range(size): # Loop through all letters (their binary representation)
+            if i & (1 << j):  # Check if the j-th bit is 1 (is upper)
                 current.append(word[j].upper())
             else:
                 current.append(word[j].lower())
@@ -30,10 +30,12 @@ def generate_all_variations(word):
 
 @memoization
 def generate_all_insertions_for_keyword(word, special_word):
+    # Generate all insertions of special_word into the given word
     return [word[:i] + special_word + word[i:] for i in range(len(word) + 1)]
 
 @memoization
 def generate_all_insertions_for_random(word, special_word):
+    # Generate all insertions of word into the given special_word
     return [special_word[:i] + word + special_word[i:] for i in range(len(special_word) + 1)]
 
 
@@ -80,7 +82,7 @@ class TestNikuldenValidator(unittest.TestCase):
             self.invalid_keywords.update(variations_keyword)
             self.invalid_keywords.update(variations_random)
 
-        invalid_contents = self.some_edge_cases.copy()
+        invalid_contents = self.some_edge_cases.copy() # self.some_edge_cases is mutable
 
         invalid_contents.extend(
             template.format(keyword=current_keyword)
