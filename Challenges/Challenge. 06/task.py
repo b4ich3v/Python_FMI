@@ -29,7 +29,6 @@ def generate_all_insertions_for_random(word, special_word):
         variations.append(new_word)
     return variations
 
-
 class TestNikuldenValidator(unittest.TestCase):
 
     def setUp(self):
@@ -37,7 +36,7 @@ class TestNikuldenValidator(unittest.TestCase):
         self.special_word = "рок"
         self.valid_keywords = set()
         self.invalid_keywords = set()
-        self.some_edge_cases = ["", "\t", "\n"]
+        self.some_edge_cases = ["", "\t", "\n", "123"]
 
         for current_keyword in self.keywords:
             variations = generate_all_variations(current_keyword)
