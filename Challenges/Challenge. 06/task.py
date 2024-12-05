@@ -41,7 +41,7 @@ class TestNikuldenValidator(unittest.TestCase):
 
     def setUp(self):
         self.keywords = ["риба", "рибена", "шаран", "сьонга"]
-        self.special_word = "рок"
+        self.special_word = "тр"
         self.valid_keywords = set()
         self.invalid_keywords = set()
         self.some_edge_cases = ["", "\t", "\n", "123", "!", "?", ".", ","]
