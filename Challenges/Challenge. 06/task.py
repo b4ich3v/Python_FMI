@@ -29,6 +29,7 @@ def generate_all_insertions_for_random(word, special_word):
         variations.append(new_word)
     return variations
 
+
 class TestNikuldenValidator(unittest.TestCase):
 
     def setUp(self):
