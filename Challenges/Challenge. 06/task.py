@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import mock_open, patch
 from secret import validate_recipe, RuinedNikuldenDinnerError
 
-def simple_cache(func):
+def memoization(func):
     data = {}
 
     def wrapper(*args):
@@ -14,7 +14,7 @@ def simple_cache(func):
 
     return wrapper
 
-@simple_cache
+@memoization
 def generate_all_variations(word):
     size = len(word)
     result = []
@@ -28,13 +28,14 @@ def generate_all_variations(word):
         result.append(''.join(current))
     return result
 
-@simple_cache
+@memoization
 def generate_all_insertions_for_keyword(word, special_word):
     return [word[:i] + special_word + word[i:] for i in range(len(word) + 1)]
 
-@simple_cache
+@memoization
 def generate_all_insertions_for_random(word, special_word):
     return [special_word[:i] + word + special_word[i:] for i in range(len(special_word) + 1)]
+
 
 class TestNikuldenValidator(unittest.TestCase):
 
@@ -43,7 +44,7 @@ class TestNikuldenValidator(unittest.TestCase):
         self.special_word = "рок"
         self.valid_keywords = set()
         self.invalid_keywords = set()
-        self.some_edge_cases = ["", "\t", "\n", "123"]
+        self.some_edge_cases = ["", "\t", "\n", "123", "!", "?", ".", ","]
 
         self.templates = [
             "Днес ще ям {keyword}, защото е Никулден ;Д.",
@@ -51,6 +52,7 @@ class TestNikuldenValidator(unittest.TestCase):
             "{keyword} е подходящо ястие за Никулден.",
             "Нямам против да приготвя {keyword}, знаейки че иначе ще бъде жена ми ;(.",
             "{keyword} е доста екзотично и полезно ястие."
+            "Практически {keyword} е клас {keyword} нали???"
         ]
 
         for current_keyword in self.keywords:
@@ -69,7 +71,7 @@ class TestNikuldenValidator(unittest.TestCase):
                 m = mock_open(read_data=content)
                 with patch("builtins.open", m):
                     result = validate_recipe("dummy_path.txt")
-                    self.assertTrue(result, f"Expected True for content: {content}")
+                    self.assertTrue(result, "Error")
 
     def test_invalid_recipe(self):
         for current_keyword in self.valid_keywords:
@@ -91,7 +93,7 @@ class TestNikuldenValidator(unittest.TestCase):
                 m = mock_open(read_data=content)
                 with patch("builtins.open", m):
                     result = validate_recipe("dummy_path.txt")
-                    self.assertFalse(result, f"Expected False for content: {content}")
+                    self.assertFalse(result, "Error")
 
     def test_bad_recipe_file(self):
         error_cases = [OSError, IOError]
