@@ -53,8 +53,12 @@ class TestNikuldenValidator(unittest.TestCase):
             "Тази рецепта включва {keyword}.",
             "{keyword} е подходящо ястие за Никулден.",
             "Нямам против да приготвя {keyword}, знаейки че иначе ще бъде жена ми ;(.",
-            "{keyword} е доста екзотично и полезно ястие."
-            "Практически {keyword} е клас {keyword} нали???"
+            "{keyword} е доста екзотично и полезно ястие.",
+            "Практически {keyword} е клас {keyword} нали???",
+            "{keyword}",
+            "{keyword} ",
+            " {keyword}",
+            " {keyword} "
         ]
 
         for current_keyword in self.keywords:
