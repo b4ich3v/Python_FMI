@@ -9,8 +9,8 @@ class Kid(type):
     def __new__(mcs, name, bases, namespace):
         cls = super().__new__(mcs, name, bases, dict(namespace))
 
-        if '__call__' not in namespace:
-            has_call = any(hasattr(base, '__call__') for base in bases)
+        if "__call__" not in namespace:
+            has_call = any(hasattr(base, "__call__") for base in bases)
             if not has_call:
                 raise NotImplementedError("Bruhhh")
 
@@ -154,13 +154,13 @@ class Santa:
             if kid_id in self.last_requests:
                 gift = self.last_requests[kid_id]
                 if naughty:
-                    gift = 'coal'
+                    gift = "coal"
             else:
                 gift = chosen_most_wanted
                 if gift is None:
                     continue
                 if naughty:
-                    gift = 'coal'
+                    gift = "coal"
 
             kid(gift)  # Call the kid with the chosen gift
 
