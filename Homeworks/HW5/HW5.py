@@ -1,6 +1,5 @@
 import re
 import random
-from collections import Counter
 
 ALL_KIDS = {}
 KID_INDEX_MAP = {}
@@ -128,12 +127,17 @@ class Santa:
     def _find_most_wanted_gift(self):
         if not self.last_requests:
             return None
-        gift_counts = Counter(self.last_requests.values())
-        if gift_counts:
-            max_count = max(gift_counts.values())
-            most_wanted = [g for g, c in gift_counts.items() if c == max_count]
-            return random.choice(most_wanted)
-        return None
+
+        gift_counts = {}
+        for gift in self.last_requests.values():
+            gift_counts[gift] = gift_counts.get(gift, 0) + 1
+
+        if not gift_counts:
+            return None
+
+        max_count = max(gift_counts.values())
+        most_wanted = [g for g, c in gift_counts.items() if c == max_count]
+        return random.choice(most_wanted) if most_wanted else None
 
     def _deliver(self, chosen_most_wanted):
         for kid_id, kid in ALL_KIDS.items():
