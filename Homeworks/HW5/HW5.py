@@ -23,7 +23,7 @@ class Kid(type):
                     if Santa._instance is not None:
                         santa = Santa._instance
                         kid_index = KID_INDEX_MAP[kid_id]
-                        santa.kid_naughty_mask |= (1 << kid_index)
+                        santa.kid_naughty_mask |= (1 << kid_index)  # Marking the kid as naughty
                     raise
             return wrapper
 
@@ -34,6 +34,7 @@ class Kid(type):
         return cls
 
     def __call__(cls, *args, **kwargs):
+        # Register a new kid instance globally
         instance = super().__call__(*args, **kwargs)
         kid_id = id(instance)
         ALL_KIDS[kid_id] = instance
@@ -48,15 +49,15 @@ class Santa:
 
     def __new__(cls):
         if cls._instance is None:
-            inst = super().__new__(cls)
-            cls._instance = inst
-            inst.xmas_count = 0
-            inst.kid_birth_xmas = {}
-            inst.last_requests = {}
-            inst.requests_since_last_xmas = []
+            obj = super().__new__(cls)
+            cls._instance = obj
+            obj.xmas_count = 0
+            obj.kid_birth_xmas = {}  # kid_id -> xmas_count when the kid was created
+            obj.last_requests = {}  # kid_id -> last requested gift this year
+            obj.requests_since_last_xmas = []
 
-            inst.kid_naughty_mask = 0
-            inst.kids_requested_mask = 0
+            obj.kid_naughty_mask = 0  # Bitmask for naughty kids
+            obj.kids_requested_mask = 0  # Bitmask for kids who requested a gift this year
 
         return cls._instance
 
@@ -72,6 +73,7 @@ class Santa:
         self.requests_since_last_xmas.append((kid_id, gift))
         self.last_requests[kid_id] = gift
         kid_index = KID_INDEX_MAP[kid_id]
+        # Mark this kid as having requested a gift this year
         self.kids_requested_mask |= (1 << kid_index)
 
     def __matmul__(self, letter):
@@ -84,6 +86,7 @@ class Santa:
         self.requests_since_last_xmas.append((kid_id, gift))
         self.last_requests[kid_id] = gift
         kid_index = KID_INDEX_MAP[kid_id]
+        # Mark this kid as having requested a gift this year
         self.kids_requested_mask |= (1 << kid_index)
 
         return self
@@ -159,9 +162,10 @@ class Santa:
                 if naughty:
                     gift = 'coal'
 
-            kid(gift)
+            kid(gift)  # Call the kid with the chosen gift
 
     def _reset(self):
+        # Reset state for the next year
         self.xmas_count += 1
         self.requests_since_last_xmas.clear()
         self.last_requests.clear()
