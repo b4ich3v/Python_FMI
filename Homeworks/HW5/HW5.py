@@ -2,7 +2,7 @@ import re
 import random
 
 ALL_KIDS = {}
-KID_INDEX_MAP = {}
+KID_INDEXES = {}
 KID_LIST = []
 
 class Kid(type):
@@ -22,7 +22,7 @@ class Kid(type):
                 except Exception:
                     if Santa._instance is not None:
                         santa = Santa._instance
-                        kid_index = KID_INDEX_MAP[kid_id]
+                        kid_index = KID_INDEXES[kid_id]
                         santa.kid_naughty_mask |= (1 << kid_index)  # Marking the kid as naughty
                     raise
             return wrapper
@@ -35,13 +35,13 @@ class Kid(type):
 
     def __call__(cls, *args, **kwargs):
         # Register a new kid instance globally
-        instance = super().__call__(*args, **kwargs)
-        kid_id = id(instance)
-        ALL_KIDS[kid_id] = instance
+        obj = super().__call__(*args, **kwargs)
+        kid_id = id(obj)
+        ALL_KIDS[kid_id] = obj
         kid_index = len(KID_LIST)
-        KID_LIST.append(instance)
-        KID_INDEX_MAP[kid_id] = kid_index
-        return instance
+        KID_LIST.append(obj)
+        KID_INDEXES[kid_id] = kid_index
+        return obj
 
 
 class Santa:
@@ -65,49 +65,58 @@ class Santa:
         pass
 
     def __call__(self, kid, message):
-        gift = self._extract_gift(message)
+        gift = self._get_gift(message)
         kid_id = id(kid)
         if kid_id not in self.kid_birth_xmas:
             self.kid_birth_xmas[kid_id] = self.xmas_count
 
         self.requests_since_last_xmas.append((kid_id, gift))
         self.last_requests[kid_id] = gift
-        kid_index = KID_INDEX_MAP[kid_id]
+        kid_index = KID_INDEXES[kid_id]
         # Mark this kid as having requested a gift this year
         self.kids_requested_mask |= (1 << kid_index)
 
     def __matmul__(self, letter):
-        gift = self._extract_gift(letter)
-        kid_id = self._extract_kid_id_from_letter(letter)
+        gift = self._get_gift(letter)
+        kid_id = self._get_kid_id_from_letter(letter)
         kid = ALL_KIDS[kid_id]
         if kid_id not in self.kid_birth_xmas:
             self.kid_birth_xmas[kid_id] = self.xmas_count
 
         self.requests_since_last_xmas.append((kid_id, gift))
         self.last_requests[kid_id] = gift
-        kid_index = KID_INDEX_MAP[kid_id]
+        kid_index = KID_INDEXES[kid_id]
         # Mark this kid as having requested a gift this year
         self.kids_requested_mask |= (1 << kid_index)
 
         return self
 
-    def _extract_gift(self, text):
+    def _get_gift(self, text):
         pattern = r'(["\'])([A-Za-z0-9 ]+)\1'
         match = re.search(pattern, text)
         if not match:
             raise ValueError("Error")
         return match.group(2).strip()
 
-    def _extract_kid_id_from_letter(self, text):
+    def _get_kid_id_from_letter(self, text):
         for line in text.split('\n'):
             line_stripped = line.strip()
-            if line_stripped.isdigit():
+            if self._is_all_digits(line_stripped):
                 kid_id = int(line_stripped)
                 if kid_id in ALL_KIDS:
                     return kid_id
                 else:
                     raise ValueError("Error")
         raise ValueError("Error")
+
+    @staticmethod
+    def _is_all_digits(input_string):
+        if not input_string:
+            return False  
+        for current in input_string:
+            if not ("0" <= current <= "9"):
+                return False
+        return True
 
     def __iter__(self):
         return (gift for (unused, gift) in self.requests_since_last_xmas)
@@ -117,7 +126,7 @@ class Santa:
             self._no_requests_this_year()
             return
 
-        chosen_most_wanted = self._find_most_wanted_gift()
+        chosen_most_wanted = self._most_wanted_gift()
         self._deliver(chosen_most_wanted)
         self._reset()
 
@@ -127,7 +136,7 @@ class Santa:
         self.last_requests.clear()
         self.kids_requested_mask = 0
 
-    def _find_most_wanted_gift(self):
+    def _most_wanted_gift(self):
         if not self.last_requests:
             return None
 
@@ -148,8 +157,8 @@ class Santa:
             age = self.xmas_count - birth
             if age >= 6:
                 continue
-            kid_index = KID_INDEX_MAP[kid_id]
-            naughty = (self.kid_naughty_mask & (1 << kid_index)) != 0
+            kid_index = KID_INDEXES[kid_id]
+            naughty = (self.kid_naughty_mask & (1 << kid_index)) != 0  # Checking if the child is naughty
 
             if kid_id in self.last_requests:
                 gift = self.last_requests[kid_id]
