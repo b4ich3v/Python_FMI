@@ -52,8 +52,8 @@ class Santa:
             obj = super().__new__(cls)
             cls._instance = obj
             obj.xmas_count = 0
-            obj.kid_birth_xmas = {}  # kid_id -> xmas_count when the kid was created
-            obj.last_requests = {}  # kid_id -> last requested gift this year
+            obj.kid_birth_xmas = {}  # kid_id - xmas_count when the kid was created
+            obj.last_requests = {}  # kid_id - last requested gift this year
             obj.requests_since_last_xmas = []
 
             obj.kid_naughty_mask = 0  # Bitmask for naughty kids
