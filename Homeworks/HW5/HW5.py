@@ -6,15 +6,15 @@ KID_INDEXES = {}
 KID_LIST = []
 
 class Kid(type):
-    def __new__(mcs, name, bases, namespace):
-        cls = super().__new__(mcs, name, bases, dict(namespace))
+    def __new__(mcs, name, bases, attrs):
+        cls = super().__new__(mcs, name, bases, dict(attrs))
 
-        if "__call__" not in namespace:
+        if "__call__" not in attrs:
             has_call = any(hasattr(base, "__call__") for base in bases)
             if not has_call:
                 raise NotImplementedError("Bruhhh")
 
-        def wrap_method(method):
+        def decorate_with_exception_handling(method):
             def wrapper(self, *args, **kwargs):
                 kid_id = id(self)
                 try:
@@ -27,9 +27,9 @@ class Kid(type):
                     raise
             return wrapper
 
-        for attr_name, attr_value in namespace.items():
+        for attr_name, attr_value in attrs.items():
             if callable(attr_value) and not attr_name.startswith('_'):
-                setattr(cls, attr_name, wrap_method(attr_value))
+                setattr(cls, attr_name, decorate_with_exception_handling(attr_value))
 
         return cls
 
@@ -64,8 +64,8 @@ class Santa:
     def __init__(self):
         pass
 
-    def __call__(self, kid, message):
-        gift = self._get_gift(message)
+    def __call__(self, kid, input_string):
+        gift = self._get_gift(input_string)
         kid_id = id(kid)
         if kid_id not in self.kid_birth_xmas:
             self.kid_birth_xmas[kid_id] = self.xmas_count
@@ -76,9 +76,9 @@ class Santa:
         # Mark this kid as having requested a gift this year
         self.kids_requested_mask |= (1 << kid_index)
 
-    def __matmul__(self, letter):
-        gift = self._get_gift(letter)
-        kid_id = self._get_kid_id_from_letter(letter)
+    def __matmul__(self, input_string):
+        gift = self._get_gift(input_string)
+        kid_id = self._get_kid_id_from_letter(input_string)
         kid = ALL_KIDS[kid_id]
         if kid_id not in self.kid_birth_xmas:
             self.kid_birth_xmas[kid_id] = self.xmas_count
@@ -91,15 +91,15 @@ class Santa:
 
         return self
 
-    def _get_gift(self, text):
+    def _get_gift(self, input_string):
         pattern = r'(["\'])([A-Za-z0-9 ]+)\1'
-        match = re.search(pattern, text)
+        match = re.search(pattern, input_string)
         if not match:
             raise ValueError("Error")
-        return match.group(2).strip()
+        return match.group(2).strip() # Removing this kind of symbols : "\t", "\n" ...
 
-    def _get_kid_id_from_letter(self, text):
-        for line in text.split('\n'):
+    def _get_kid_id_from_letter(self, input_string):
+        for line in input_string.split('\n'):
             line_stripped = line.strip()
             if self._is_all_digits(line_stripped):
                 kid_id = int(line_stripped)
