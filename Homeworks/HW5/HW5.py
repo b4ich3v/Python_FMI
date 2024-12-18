@@ -69,13 +69,13 @@ class Santa:
         self.kid_flags_mask |= (1 << (kid_index * 3))  
 
     def _is_naughty(self, kid_index):
-        return bool(self.kid_flags_mask & (1 << (kid_index * 3)))
+        return (self.kid_flags_mask & (1 << (kid_index * 3))) != 0
 
     def _mark_requested(self, kid_index):
         self.kid_flags_mask |= (1 << (kid_index * 3 + 1))  
 
     def _is_requested(self, kid_index):
-        return bool(self.kid_flags_mask & (1 << (kid_index * 3 + 1)))
+        return (self.kid_flags_mask & (1 << (kid_index * 3 + 1))) != 0
 
     def _set_age_flag(self, kid_index, is_over_age):
         if is_over_age:
@@ -84,7 +84,7 @@ class Santa:
             self.kid_flags_mask |= (1 << (kid_index * 3 + 2))  
 
     def _is_over_age(self, kid_index):
-        return not bool(self.kid_flags_mask & (1 << (kid_index * 3 + 2)))
+        return not ((self.kid_flags_mask & (1 << (kid_index * 3 + 2))) != 0)
 
     def _register_kid(self, kid):
         kid_id = id(kid)
