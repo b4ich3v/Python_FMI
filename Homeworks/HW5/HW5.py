@@ -22,7 +22,7 @@ class Kid(type):
                 except Exception:
                     santa = Santa()
                     kid_index = Kid._kid_indexes[kid_id]
-                    santa.kid_naughty_mask |= (1 << kid_index)  # Marking the kid as naughty
+                    santa.mark_naughty(kid_index)  # Marking the kid as naughty
                     raise
             return wrapper
 
@@ -82,7 +82,7 @@ class Santa:
         self.last_requests[kid_id] = gift
         kid_index = Kid._kid_indexes[kid_id]
         # Mark this kid as having requested a gift this year
-        self.kids_requested_mask |= (1 << kid_index)
+        self.mark_requested(kid_index)
 
     def __matmul__(self, input_string):
         gift = self._get_gift(input_string)
@@ -95,7 +95,7 @@ class Santa:
         self.last_requests[kid_id] = gift
         kid_index = Kid._kid_indexes[kid_id]
         # Mark this kid as having requested a gift this year
-        self.kids_requested_mask |= (1 << kid_index)
+        self.mark_requested(kid_index)
 
         return self
 
@@ -113,6 +113,18 @@ class Santa:
             if kid_id in Kid._all_kids:
                 return kid_id
         raise ValueError("Error")
+
+    def mark_naughty(self, kid_index):
+        self.kid_naughty_mask |= (1 << kid_index)
+
+    def is_naughty(self, kid_index):
+        return (self.kid_naughty_mask & (1 << kid_index)) != 0
+
+    def mark_requested(self, kid_index):
+        self.kids_requested_mask |= (1 << kid_index)
+
+    def is_requested(self, kid_index):
+        return (self.kids_requested_mask & (1 << kid_index)) != 0
 
     def __iter__(self):
         return iter(self.last_requests.values())
@@ -148,7 +160,7 @@ class Santa:
             if age >= self.AGE_LIMIT:
                 continue
             kid_index = Kid._kid_indexes[kid_id]
-            naughty = (self.kid_naughty_mask & (1 << kid_index)) != 0  # Checking if the child is naughty
+            naughty = self.is_naughty(kid_index)  # Checking if the child is naughty
 
             if kid_id in self.last_requests:
                 gift = self.last_requests[kid_id]
