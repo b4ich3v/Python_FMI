@@ -44,7 +44,7 @@ class Suit(Enum):
         raise ValueError(f"Invalid compressed suit: {mask}")
 
 
-# Таблица 1: Ранг -> стойност в чипове
+# Rank -> chips value
 RANK_VALUES = {
     "2": 2,
     "3": 3,
@@ -61,11 +61,13 @@ RANK_VALUES = {
     "A": 11,
 }
 
-# Rank ordering index (used for sort_key / Deck)
+# For sorting by rank
 RANK_INDEX = {rank: i for i, rank in enumerate(RANK_VALUES.keys())}
 
 
 class AbstractCard(ABC):
+    """Base card type"""
+
     __slots__ = ("_rank", "_suit")
 
     def __init__(self, rank: str, suit: Suit) -> None:
@@ -147,17 +149,23 @@ class WildCard(AbstractCard):
 
 
 class JokerAction(ABC):
+    """Strategy interface for joker effects"""
+
     @abstractmethod
     def apply(self, chips: int, mult: int) -> Tuple[int, int]:
         raise NotImplementedError
 
 
 class JokerActionIdentity(JokerAction):
+    """No-op effect"""
+
     def apply(self, chips: int, mult: int) -> Tuple[int, int]:
         return chips, mult
 
 
 class JokerActionAddChips(JokerAction):
+    """Add fixed chips"""
+
     def __init__(self, delta: int) -> None:
         self.delta = int(delta)
 
@@ -166,6 +174,8 @@ class JokerActionAddChips(JokerAction):
 
 
 class JokerActionMultiplyMult(JokerAction):
+    """Multiply multiplier"""
+
     def __init__(self, factor: int) -> None:
         self.factor = int(factor)
 
@@ -174,6 +184,8 @@ class JokerActionMultiplyMult(JokerAction):
 
 
 class JokerActionAddToMult(JokerAction):
+    """Add to multiplier"""
+
     def __init__(self, delta: int) -> None:
         self.delta = int(delta)
 
@@ -198,15 +210,12 @@ class Joker:
 
     __slots__ = ("_chips", "_mult", "_action")
 
-    def __init__(self, chips: int, mult: int, action: JokerAction | None = None) -> None:
+    def __init__(self, chips: int, mult: int, action=None) -> None:
         self._chips = int(chips)
         self._mult = int(mult)
 
         if action is None:
             action = JokerActionIdentity()
-
-        if not isinstance(action, JokerAction):
-            raise TypeError("action must be an instance of JokerAction")
 
         self._action = action
 
@@ -219,7 +228,8 @@ class Joker:
         return self._mult
 
     @property
-    def action(self) -> JokerAction:
+    def action(self):
+        """Either JokerAction or plain callable"""
         return self._action
 
     def __str__(self) -> str:
@@ -260,59 +270,6 @@ class Hand:
         return f"Hand({self._cards!r})"
 
 
-class CardFactory:
-    """CardFactory implementation (string parser, String -> Card object)"""
-
-    @staticmethod
-    def _parse_rank_and_suit(token: str) -> Tuple[str, Suit]:
-        token = token.strip()
-        if len(token) < 2:
-            raise ValueError(f"Invalid card notation: {token!r}")
-        suit_char = token[-1]
-        rank_part = token[:-1]
-        if suit_char not in hashed_unicode_symbols:
-            raise ValueError(f"Unknown suit symbol: {suit_char!r}")
-        if rank_part not in RANK_VALUES:
-            raise ValueError(f"Unknown rank: {rank_part!r}")
-        for suit in Suit:
-            if suit.value == suit_char:
-                return rank_part, suit
-        raise ValueError(f"Cannot map suit symbol: {suit_char!r}")
-
-    @classmethod
-    def from_string(cls, s: str) -> AbstractCard:
-        s = s.strip()
-        lower = s.lower()
-
-        if lower.startswith("silver "):
-            core = s[7:].strip()
-            rank, suit = cls._parse_rank_and_suit(core)
-            return SilverCard(rank, suit)
-
-        if lower.startswith("gold "):
-            core = s[5:].strip()
-            rank, suit = cls._parse_rank_and_suit(core)
-            return GoldCard(rank, suit)
-
-        if lower.startswith("wild "):
-            core = s[5:].strip()
-            parts = core.split()
-            if not parts:
-                raise ValueError(f"Invalid Wild notation: {s!r}")
-            rank = parts[0]
-            if rank not in RANK_VALUES:
-                raise ValueError(f"Unknown rank for Wild: {rank!r}")
-            return WildCard(rank)
-
-        # Normal card
-        rank, suit = cls._parse_rank_and_suit(s)
-        return Card(rank, suit)
-
-    @classmethod
-    def from_strings(cls, items: Iterable[str]) -> List[AbstractCard]:
-        return [cls.from_string(s) for s in items]
-
-
 class ScoreManager:
     """Centralized management/monitoring for card's score"""
 
@@ -323,6 +280,7 @@ class ScoreManager:
 
     @staticmethod
     def _calculate_suit_bonus(cards: List[AbstractCard]) -> int:
+        """Bonus from suits + wilds"""
         suit_counts = Counter(c.suit for c in cards if c.suit is not Suit.WILD)
         wild_count = sum(1 for c in cards if c.suit is Suit.WILD)
 
@@ -335,6 +293,7 @@ class ScoreManager:
 
     @classmethod
     def score(cls, cards: Iterable[AbstractCard], jokers: Iterable[Joker]) -> int:
+        """Main scoring function"""
         cards = list(cards)
         jokers = list(jokers)
 
@@ -347,8 +306,13 @@ class ScoreManager:
         mult += cls._calculate_rank_bonus(cards)
         mult += cls._calculate_suit_bonus(cards)
 
-        for j in jokers:
-            chips, mult = j.action.apply(chips, mult)
+        # Apply joker effects in order
+        for current_joker in jokers:
+            act = current_joker.action
+            if isinstance(act, JokerAction):
+                chips, mult = act.apply(chips, mult)
+            elif callable(act):
+                chips, mult = act(chips, mult)
 
         return int(chips * mult)
 
@@ -356,6 +320,8 @@ class ScoreManager:
     def score_hand(cls, hand: Hand, jokers: Iterable[Joker]) -> int:
         return cls.score(hand.cards, jokers)
 
+def score(cards, jokers):
+    return ScoreManager.score(cards, jokers)
 
 if __name__ == "__main__":
     # Example 1, expected 200
